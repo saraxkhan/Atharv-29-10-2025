@@ -1,1 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Happy Birthday Atharv Sir 🎉</title>
+<style>
+  html,body { height:100%; margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:#000; color:#cfe; overflow:hidden; }
+  /* Matrix & confetti canvases */
+  canvas#matrix { position:fixed; left:0; top:0; width:100%; height:100%; z-index:1; filter: blur(0.2px) contrast(120%); }
+  canvas.confetti { position: fixed; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:9; }
+
+  /* Center card */
+  .center { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:90%; max-width:900px; text-align:center; z-index:5; }
+  .card { background: rgba(0,0,0,0.45); border:1px solid rgba(0,255,180,0.06); padding:28px; border-radius:12px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); backdrop-filter: blur(6px); }
+  h1 { margin:0 0 12px 0; font-size:2.1rem; letter-spacing:0.6px; color:#9ff; text-shadow:0 6px 18px rgba(0,255,200,0.06); }
+  p.lead { margin:0 0 18px 0; color:#bfe; opacity:0.95; }
+  .sub { margin-top:10px; font-size:0.9rem; color:#9ff; opacity:0.85; }
+  button { background:transparent; color:#bff; border:1px solid rgba(100,255,200,0.18); padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600; }
+  .glow { text-shadow: 0 0 6px rgba(0,255,220,0.12), 0 6px 20px rgba(0,0,0,0.6); }
+  @media (max-width:520px){ h1{font-size:1.5rem;} .center{padding:12px;} }
+
+  /* LOCK OVERLAY (fake) */
+  #lockOverlay {
+    position:fixed; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0.98));
+    z-index:20; display:flex; align-items:center; justify-content:center; color:#cfe;
+  }
+  .lock-box { width:92%; max-width:420px; background:rgba(6,10,8,0.7); border:1px solid rgba(0,255,180,0.06); padding:22px; border-radius:14px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.7); }
+  .lock-title { font-size:1.35rem; margin-bottom:8px; color:#aaffee; }
+  .lock-sub { font-size:0.95rem; color:#cfe; opacity:0.9; margin-bottom:12px; }
+  .pin-input { width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); background:rgba(0,0,0,0.4); color:#cff; font-size:1rem; text-align:center; outline:none; box-sizing:border-box; }
+  .lock-hint { font-size:0.78rem; color:#ffd; opacity:0.85; margin-top:10px; }
+  .scare { font-size:48px; margin:12px 0; }
+  .fake-warning { margin-top:10px; font-size:0.85rem; color:#ffb3b3; background:rgba(255,40,40,0.04); padding:8px; border-radius:8px; border:1px solid rgba(255,40,40,0.06); }
+  .shake { animation: shake 0.45s ease-in-out; }
+  @keyframes shake { 10%{ transform:translateX(-6px);} 30%{ transform:translateX(6px);} 50%{ transform:translateX(-4px);} 70%{ transform:translateX(4px);} 90%{ transform:translateX(-2px);} }
+  .glitch {
+    color: #fff; text-shadow: 0 0 6px rgba(255,0,120,0.9), 2px 0 0 rgba(0,255,200,0.6);
+    transform: scale(1.02);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+<canvas class="confetti" id="confetti"></canvas>
+
+<!-- FAKE LOCK OVERLAY (appears first) -->
+<div id="lockOverlay" aria-hidden="false">
+  <div class="lock-box" id="lockBox">
+    <div class="lock-title">🔒 Enter your phone lock to open the card</div>
+    <div class="lock-sub">One-time access |  <strong>We know if its fake:D</strong>.</div>
+
+    <div style="display:flex; gap:8px; align-items:center; justify-content:center; margin-bottom:8px;">
+      <input id="fakePin" class="pin-input" placeholder="Enter phone lock / PIN (dummy)" autocomplete="off" maxlength="12" />
+    </div>
+
+    <button id="unlockBtn">Unlock</button>
+
+    <div class="lock-hint">Heheheheh😈</div>
+    <div class="fake-warning">⚠️Hacker, You are about to get hacked.</div>
+  </div>
+</div>
+
+<!-- Main card visible after overlay removed -->
+<div class="center" id="mainContent" aria-hidden="true" style="visibility:hidden;">
+  <div class="card">
+    <h1 class="glow" id="typed">Happy Birthday, Atharv Sir!!!</h1>
+    <p class="lead">To the tech genius | here’s your digital surprise.</p>
+
+    <p style="text-align:left; color:#bfe; line-height:1.6; margin-top:20px;">
+      <strong>Access Granted — Birthday Protocol:</strong><br><br>
+      Respected Tech-genius,<br><br>
+      Happy Birthday to the one who turns ideas into reality. Your curiosity <em>owns</em> so much..keep building, keep breaking barriers, and keep teaching us. Big respect, big hopes, and bigger uptime for your dreams.<br><br>
+      <strong>— From the team who admires you & your swag ✨</strong>
+    </p>
+
+    <div style="margin-top:20px;">
+      <button id="confettiBtn">Celebrate 🎉</button>
+      <button id="downloadCard">Download Card</button>
+    </div>
+
+    <p class="sub">“Keep the spirit high, 19th year successfully unlocked on this env”</p>
+  </div>
+</div>
+
+<script>
+/* ---------------- Matrix rain background ---------------- */
+const matrix = document.getElementById('matrix');
+function setupMatrix(){ matrix.width = innerWidth; matrix.height = innerHeight; }
+setupMatrix();
+const ctx = matrix.getContext('2d');
+const letters = '01ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@#$%&*+=-<>?/\\|';
+const fontSize = 14;
+let columns = Math.floor(matrix.width / fontSize);
+let drops = Array(columns).fill(1);
+function drawMatrix(){
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.fillRect(0,0,matrix.width,matrix.height);
+  ctx.fillStyle = 'rgba(0,255,180,0.08)';
+  ctx.font = fontSize + 'px monospace';
+  for(let i=0;i<drops.length;i++){
+    const text = letters.charAt(Math.floor(Math.random() * letters.length));
+    ctx.fillText(text, i*fontSize, drops[i]*fontSize);
+    if(drops[i]*fontSize > matrix.height && Math.random() > 0.975) drops[i]=0;
+    drops[i]++;
+  }
+}
+setInterval(drawMatrix, 40);
+addEventListener('resize', ()=> { setupMatrix(); columns = Math.floor(matrix.width / fontSize); drops = Array(columns).fill(1); });
+
+/* ---------------- Typing headline ---------------- */
+const typedEl = document.getElementById('typed');
+const headlineVariants = [
+  "Happy Birthday Sir 🎉",
+];
+let ti=0, ci=0;
+function typeLoop(){
+  const text = headlineVariants[ti];
+  if(ci <= text.length){
+    typedEl.textContent = text.slice(0,ci);
+    ci++;
+    setTimeout(typeLoop, 45);
+  } else {
+    setTimeout(()=>{ ci=0; ti=(ti+1)%headlineVariants.length; setTimeout(typeLoop,700); }, 1200);
+  }
+}
+typeLoop();
+
+/* ------------- Confetti Animation -------------- */
+const confCanvas = document.getElementById('confetti');
+function setupConf(){ confCanvas.width = innerWidth; confCanvas.height = innerHeight; }
+setupConf();
+const cctx = confCanvas.getContext('2d');
+let confettiPieces = [];
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function createConfetti(){
+  confettiPieces = [];
+  const count = 120;
+  for(let i=0;i<count;i++){
+    confettiPieces.push({
+      x: rand(0, confCanvas.width),
+      y: rand(-confCanvas.height, 0),
+      w: rand(6,14),
+      h: rand(8,18),
+      r: rand(0,360),
+      speed: rand(1.6,4),
+      drift: rand(-1.2,1.2),
+      rotSpeed: rand(-6,6),
+      color: `hsl(${Math.floor(rand(0,360))} 80% 60%)`
+    });
+  }
+}
+function renderConfetti(){
+  cctx.clearRect(0,0,confCanvas.width, confCanvas.height);
+  confettiPieces.forEach(p=>{
+    cctx.save();
+    cctx.translate(p.x, p.y);
+    cctx.rotate(p.r * Math.PI / 180);
+    cctx.fillStyle = p.color;
+    cctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    cctx.restore();
+    p.x += p.drift;
+    p.y += p.speed;
+    p.r += p.rotSpeed;
+    if(p.y > confCanvas.height + 20) {
+      p.y = rand(-100, -10);
+      p.x = rand(0, confCanvas.width);
+    }
+  });
+}
+let confettiTimer = null;
+function launchConfetti(){
+  createConfetti();
+  if(confettiTimer) clearInterval(confettiTimer);
+  confettiTimer = setInterval(renderConfetti, 16);
+  setTimeout(()=>{ clearInterval(confettiTimer); cctx.clearRect(0,0,confCanvas.width,confCanvas.height); }, 7000);
+}
+addEventListener('resize', ()=>{ setupConf(); });
+
+document.getElementById('confettiBtn').addEventListener('click', launchConfetti);
+
+/* --------- Download card (SVG) --------- */
+document.getElementById('downloadCard').addEventListener('click', ()=> {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#001f16"/>
+        <stop offset="1" stop-color="#002826"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#g)"></rect>
+    
+    <text x="50%" y="10%" text-anchor="middle" font-size="58" fill="#aaffee" font-family="Arial">
+      🎉 Happy Birthday Atharv Sir!! 🎉
+    </text>
+
+    <text x="6%" y="32%" font-size="18" fill="#bff" font-family="Courier New">By - Varun Sir:</text>
+    <text x="6%" y="37%" font-size="16" fill="#cfe" font-family="Courier New">
+      "Birthdays are felicity to foster for epicureanism and equanimity."
+    </text>
+    <text x="6%" y="42%" font-size="15" fill="#9ff" font-family="Courier New">
+      An eye for an eye makes the world blind.
+    </text>
+
+    <text x="6%" y="52%" font-size="18" fill="#bff" font-family="Courier New">By - Kanak Ma’am:</text>
+    <text x="6%" y="57%" font-size="16" fill="#cfe" font-family="Courier New">
+      "To the one who turned my doubts into dreams — Happy Birthday!"
+    </text>
+    <text x="6%" y="62%" font-size="15" fill="#9ff" font-family="Courier New">
+      You’re the reason behind so much growth and motivation..Wishing you endless success and joy! 🚀
+    </text>
+
+    <text x="6%" y="72%" font-size="18" fill="#bff" font-family="Courier New">By - Ayush Sir:</text>
+    <text x="6%" y="77%" font-size="16" fill="#cfe" font-family="Courier New">
+      "Atharv, my dear son, you’ve taught me so much—especially about studies 😌."
+    </text>
+    <text x="6%" y="82%" font-size="15" fill="#9ff" font-family="Courier New">
+      On your birthday today, I just want to say… I love you 🫣🌚
+    </text>
+    <text x="6%" y="87%" font-size="14" fill="#9ff" font-family="Courier New">
+      And please, focus on your studies, don’t get lost in the world of girls 😏🎓
+    </text>
+
+    <text x="6%" y="91%" font-size="15" fill="#bff" font-family="Courier New">By - Sara:</text>
+    <text x="6%" y="95%" font-size="14" fill="#cfe" font-family="Courier New">
+      <tspan x="6%" dy="0">Wishing you a happy year ahead sir! May this year be a great success to you.</tspan>
+    </text>
+
+  </svg>`;
+
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'atharv-bday-card.svg';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+
+/* ------------- Fake lock overlay behavior -------------- */
+const lockOverlay = document.getElementById('lockOverlay');
+const fakePin = document.getElementById('fakePin');
+const unlockBtn = document.getElementById('unlockBtn');
+const lockBox = document.getElementById('lockBox');
+const mainContent = document.getElementById('mainContent');
+
+fakePin.focus();
+
+function revealCard(){
+  setTimeout(()=>{
+    lockOverlay.style.display = 'none';
+    mainContent.style.visibility = 'visible';
+    mainContent.setAttribute('aria-hidden','false');
+    launchConfetti();
+  }, 600);
+}
+
+unlockBtn.addEventListener('click', ()=> {
+  lockBox.classList.add('shake');
+  setTimeout(()=> lockBox.classList.remove('shake'), 500);
+
+  lockBox.innerHTML = `
+    <div class="scare glitch">😈</div>
+    <div style="font-size:1rem; margin-top:6px;">Attempting to unlock…</div>
+    <div style="font-size:0.85rem; color:#ffd; opacity:0.9; margin-top:10px;">(Harmless prank)</div>
+  `;
+  fakePin.value = '';
+  setTimeout(()=> revealCard(), 1200);
+});
+
+fakePin.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') unlockBtn.click(); });
+fakePin.addEventListener('paste', (e)=>{ e.preventDefault(); fakePin.value = ''; lockBox.classList.add('shake'); setTimeout(()=> lockBox.classList.remove('shake'), 500); });
+</script>
+
+</body>
+</html>
 
